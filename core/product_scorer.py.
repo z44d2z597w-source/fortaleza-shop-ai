@@ -1,0 +1,596 @@
+
+"""
+================================================
+FORTALEZA SHOP AI
+PRODUCT SCORER
+Evaluador inteligente de oportunidades comerciales
+================================================
+
+Evalúa:
+- Atractivo comercial estimado.
+- Accesibilidad del precio.
+- Comisión disponible.
+- Calidad de la información.
+- Enlaces comerciales.
+- Potencial de presentación en video.
+
+No inventa ventas, popularidad ni conversiones.
+"""
+
+import csv
+import json
+import logging
+
+from pathlib import Path
+from datetime import datetime
+from urllib.parse import urlparse
+
+import config
+
+from core.product_finder import load_products
+
+
+# =================================================
+# CONFIGURACIÓN
+# =================================================
+
+logger = logging.getLogger("FORTALEZA_SHOP_AI.PRODUCT_SCORER")
+
+SCORES_FILE = config.OUTPUT_DIR / "product_scores.json"
+
+MAX_SCORE = 100
+
+# Pesos de evaluación
+WEIGHTS = {
+    "commission": 30,
+    "price": 20,
+    "information": 25,
+    "attractiveness": 15,
+    "category": 10,
+}
+
+
+# =================================================
+# UTILIDADES
+# =================================================
+
+def number(value):
+    """
+    Convierte un valor a número.
+    Los valores desconocidos permanecen como None.
+    """
+
+    if value is None or value == "":
+        return None
+
+    try:
+        result = float(value)
+
+        if result < 0:
+            return None
+
+        return result
+
+    except (ValueError, TypeError):
+        return None
+
+
+def valid_url(url):
+    """
+    Comprueba que un enlace tenga formato HTTPS válido.
+    """
+
+    if not isinstance(url, str):
+        return False
+
+    try:
+        parsed = urlparse(url.strip())
+
+        return (
+            parsed.scheme == "https"
+            and bool(parsed.netloc)
+            and " " not in url
+        )
+
+    except Exception:
+        return False
+
+
+# =================================================
+# EVALUACIÓN DE COMISIONES
+# =================================================
+
+def score_commission(product):
+    """
+    Evalúa el porcentaje de comisión disponible.
+
+    No calcula ganancias futuras.
+    """
+
+    commission = number(
+        product.get("commission_percent")
+    )
+
+    if commission is None:
+        return 0
+
+    if commission >= 30:
+        return 30
+
+    if commission >= 20:
+        return 25
+
+    if commission >= 15:
+        return 21
+
+    if commission >= 10:
+        return 17
+
+    if commission >= 5:
+        return 12
+
+    if commission > 0:
+        return 6
+
+    return 0
+
+
+# =================================================
+# EVALUACIÓN DEL PRECIO
+# =================================================
+
+def score_price(product):
+    """
+    Evalúa accesibilidad estimada del precio.
+
+    Los rangos son criterios internos iniciales,
+    no una afirmación de que el producto se venderá.
+    """
+
+    price = number(
+        product.get("price_mxn")
+    )
+
+    if price is None or price <= 0:
+        return 0
+
+    if price <= 100:
+        return 20
+
+    if price <= 300:
+        return 19
+
+    if price <= 500:
+        return 17
+
+    if price <= 1000:
+        return 14
+
+    if price <= 2000:
+        return 10
+
+    if price <= 5000:
+        return 6
+
+    return 3
+
+
+# =================================================
+# EVALUACIÓN DE INFORMACIÓN
+# =================================================
+
+def score_information(product):
+    """
+    Evalúa qué tan completa está la información.
+    """
+
+    score = 0
+
+    if product.get("name"):
+        score += 4
+
+    if product.get("category"):
+        score += 3
+
+    if number(product.get("price_mxn")) is not None:
+        score += 4
+
+    if number(product.get("commission_percent")) is not None:
+        score += 4
+
+    if product.get("store"):
+        score += 2
+
+    if product.get("seller"):
+        score += 1
+
+    if valid_url(product.get("product_url", "")):
+        score += 3
+
+    if valid_url(product.get("affiliate_url", "")):
+        score += 4
+
+    return min(score, 25)
+
+
+# =================================================
+# EVALUACIÓN DE ATRACTIVO COMERCIAL
+# =================================================
+
+def score_attractiveness(product):
+    """
+    Estima el potencial de presentación en video
+    a partir del nombre del producto.
+
+    No representa estadísticas reales de ventas.
+    """
+
+    name = str(
+        product.get("name", "")
+    ).lower()
+
+    visual_keywords = [
+        "led",
+        "inalámbrico",
+        "wireless",
+        "organizador",
+        "multifuncional",
+        "automático",
+        "portátil",
+        "mini",
+        "recargable",
+        "inteligente",
+        "limpiador",
+        "aspiradora",
+        "lámpara",
+        "gadgets",
+        "cámara",
+        "cocina",
+        "soporte",
+        "proyector",
+        "dispensador",
+        "herramienta",
+    ]
+
+    utility_keywords = [
+        "ahorro",
+        "limpieza",
+        "organización",
+        "carga",
+        "protección",
+        "corte",
+        "reparación",
+        "cocinar",
+        "seguridad",
+        "almacenamiento",
+        "control",
+        "medición",
+    ]
+
+    score = 5
+
+    for keyword in visual_keywords:
+
+        if keyword in name:
+            score += 1
+
+    for keyword in utility_keywords:
+
+        if keyword in name:
+            score += 1
+
+    return min(score, 15)
+
+
+# =================================================
+# EVALUACIÓN DE CATEGORÍA
+# =================================================
+
+def score_category(product):
+    """
+    Evalúa si el producto pertenece a una categoría
+    prioritaria del proyecto.
+    """
+
+    category = str(
+        product.get("category", "")
+    ).lower()
+
+    category_scores = {
+        "productos_virales": 10,
+        "hogar": 10,
+        "tecnologia": 10,
+        "descubrimientos": 10,
+    }
+
+    return category_scores.get(category, 0)
+
+
+# =================================================
+# EVALUACIÓN COMPLETA
+# =================================================
+
+def evaluate_product(product):
+    """
+    Calcula una puntuación comercial de 0 a 100.
+    """
+
+    scores = {
+        "commission": score_commission(product),
+        "price": score_price(product),
+        "information": score_information(product),
+        "attractiveness": score_attractiveness(product),
+        "category": score_category(product),
+    }
+
+    total = sum(scores.values())
+
+    total = min(
+        round(total),
+        MAX_SCORE
+    )
+
+    # Para poder promocionarlo necesitamos
+    # información comercial y enlace afiliado.
+    affiliate_valid = valid_url(
+        product.get("affiliate_url", "")
+    )
+
+    product_valid = valid_url(
+        product.get("product_url", "")
+    )
+
+    price_valid = (
+        number(product.get("price_mxn")) is not None
+    )
+
+    commission_valid = (
+        number(product.get("commission_percent")) is not None
+    )
+
+    source_verified = (
+        product.get("status") == "ready_for_evaluation"
+        and bool(product.get("verified_at"))
+    )
+
+    eligible = all([
+        affiliate_valid,
+        product_valid,
+        price_valid,
+        commission_valid,
+        source_verified,
+    ])
+
+    if not eligible:
+        recommendation = "PENDIENTE_DE_VERIFICACION"
+
+    elif total >= 80:
+        recommendation = "PRIORIDAD_ALTA"
+
+    elif total >= 65:
+        recommendation = "PRIORIDAD_MEDIA"
+
+    elif total >= 50:
+        recommendation = "PRIORIDAD_BAJA"
+
+    else:
+        recommendation = "DESCARTAR_POR_AHORA"
+
+    return {
+        "product_id": product.get("product_id", ""),
+        "name": product.get("name", ""),
+        "category": product.get("category", ""),
+        "store": product.get("store", ""),
+        "price_mxn": product.get("price_mxn", ""),
+        "commission_percent": product.get(
+            "commission_percent", ""
+        ),
+        "affiliate_url": product.get("affiliate_url", ""),
+        "score": total,
+        "score_details": scores,
+        "eligible": eligible,
+        "recommendation": recommendation,
+        "evaluated_at": datetime.now(
+            config.TIMEZONE
+        ).isoformat(),
+    }
+
+
+# =================================================
+# EVALUAR CATÁLOGO COMPLETO
+# =================================================
+
+def evaluate_catalog():
+    """
+    Evalúa todos los productos del catálogo.
+    """
+
+    logger.info(
+        "Iniciando evaluación del catálogo."
+    )
+
+    products = load_products()
+
+    results = []
+
+    for product in products:
+
+        try:
+
+            result = evaluate_product(product)
+
+            results.append(result)
+
+        except Exception as error:
+
+            logger.error(
+                "Error evaluando producto %s: %s",
+                product.get("name", "desconocido"),
+                error
+            )
+
+    results.sort(
+        key=lambda item: (
+            item["eligible"],
+            item["score"]
+        ),
+        reverse=True
+    )
+
+    return results
+
+
+# =================================================
+# GUARDAR RESULTADOS
+# =================================================
+
+def save_scores(results):
+    """
+    Guarda los resultados de evaluación en JSON.
+    """
+
+    config.initialize_directories()
+
+    output = {
+        "project": config.PROJECT_NAME,
+        "evaluated_at": datetime.now(
+            config.TIMEZONE
+        ).isoformat(),
+        "total_products": len(results),
+        "eligible_products": sum(
+            1 for item in results
+            if item["eligible"]
+        ),
+        "results": results,
+    }
+
+    temporary_file = SCORES_FILE.with_suffix(".tmp")
+
+    with open(
+        temporary_file,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            output,
+            file,
+            indent=4,
+            ensure_ascii=False
+        )
+
+    temporary_file.replace(SCORES_FILE)
+
+    logger.info(
+        "Resultados guardados en %s",
+        SCORES_FILE
+    )
+
+    return output
+
+
+# =================================================
+# MEJORES OPORTUNIDADES
+# =================================================
+
+def get_top_products(limit=10):
+    """
+    Devuelve los mejores productos elegibles.
+    """
+
+    results = evaluate_catalog()
+
+    eligible = [
+        item for item in results
+        if item["eligible"]
+    ]
+
+    return eligible[:max(0, limit)]
+
+
+# =================================================
+# RESUMEN COMERCIAL
+# =================================================
+
+def get_scoring_summary(results):
+    """
+    Genera un resumen de las evaluaciones.
+    """
+
+    summary = {
+        "total": len(results),
+        "eligible": 0,
+        "pending": 0,
+        "high_priority": 0,
+        "medium_priority": 0,
+        "low_priority": 0,
+        "discarded": 0,
+    }
+
+    for item in results:
+
+        if item["eligible"]:
+            summary["eligible"] += 1
+        else:
+            summary["pending"] += 1
+
+        recommendation = item["recommendation"]
+
+        if recommendation == "PRIORIDAD_ALTA":
+            summary["high_priority"] += 1
+
+        elif recommendation == "PRIORIDAD_MEDIA":
+            summary["medium_priority"] += 1
+
+        elif recommendation == "PRIORIDAD_BAJA":
+            summary["low_priority"] += 1
+
+        elif recommendation == "DESCARTAR_POR_AHORA":
+            summary["discarded"] += 1
+
+    return summary
+
+
+# =================================================
+# EJECUCIÓN DIRECTA
+# =================================================
+
+if __name__ == "__main__":
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(message)s"
+    )
+
+    print("=" * 55)
+    print("FORTALEZA SHOP AI")
+    print("PRODUCT SCORER")
+    print("=" * 55)
+
+    results = evaluate_catalog()
+
+    save_scores(results)
+
+    summary = get_scoring_summary(results)
+
+    print("\nRESUMEN DE EVALUACIÓN")
+
+    print(
+        json.dumps(
+            summary,
+            indent=4,
+            ensure_ascii=False
+        )
+    )
+
+    print("\nMEJORES PRODUCTOS")
+
+    for item in get_top_products(10):
+
+        print(
+            f"{item['score']}/100 | "
+            f"{item['name']} | "
+            f"{item['recommendation']}"
+        )
+
+    print("\nEvaluación finalizada.")
