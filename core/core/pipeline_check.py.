@@ -1,0 +1,137 @@
+
+from pathlib import Path
+import importlib.util
+import json
+
+ROOT = Path(__file__).resolve().parent.parent
+
+REQUIRED_FILES = [
+    "config.py",
+    "main.py",
+    "core/product_finder.py",
+    "core/product_scorer.py",
+    "core/script_generator.py",
+    "core/voice_generator.py",
+    "core/video_generator.py",
+    "core/product_assets.py",
+    "core/content_planner.py",
+    "core/asset_library.py",
+    "core/media_pipeline.py",
+    "core/publishing_manager.py",
+    "core/analytics.py",
+]
+
+REQUIRED_FOLDERS = [
+    "data",
+    "data/product_assets",
+    "output",
+    "output/videos",
+    "output/pipeline",
+    "output/ready_to_publish",
+]
+
+REQUIRED_PACKAGES = [
+    "PIL",
+    "moviepy",
+    "edge_tts",
+]
+
+
+def check_files():
+    results = []
+
+    for file_name in REQUIRED_FILES:
+        exists = (ROOT / file_name).is_file()
+        results.append({
+            "element": file_name,
+            "status": "OK" if exists else "FALTA"
+        })
+
+    return results
+
+
+def check_folders():
+    results = []
+
+    for folder_name in REQUIRED_FOLDERS:
+        exists = (ROOT / folder_name).is_dir()
+        results.append({
+            "element": folder_name,
+            "status": "OK" if exists else "FALTA"
+        })
+
+    return results
+
+
+def check_packages():
+    results = []
+
+    for package in REQUIRED_PACKAGES:
+        try:
+            exists = importlib.util.find_spec(package) is not None
+        except (ImportError, ModuleNotFoundError, ValueError):
+            exists = False
+
+        results.append({
+            "element": package,
+            "status": "OK" if exists else "NO INSTALADO"
+        })
+
+    return results
+
+
+def run_check():
+    report = {
+        "files": check_files(),
+        "folders": check_folders(),
+        "packages": check_packages(),
+    }
+
+    total = sum(len(items) for items in report.values())
+    problems = sum(
+        1
+        for items in report.values()
+        for item in items
+        if item["status"] not in ("OK",)
+    )
+
+    report["summary"] = {
+        "total_checks": total,
+        "problems": problems,
+        "ready": problems == 0
+    }
+
+    output_dir = ROOT / "output" / "pipeline"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    report_path = output_dir / "system_check.json"
+    report_path.write_text(
+        json.dumps(report, indent=4, ensure_ascii=False),
+        encoding="utf-8"
+    )
+
+    print("\nFORTALEZA SHOP AI - REVISION DEL SISTEMA\n")
+
+    for section, items in report.items():
+        if section == "summary":
+            continue
+
+        print(f"\n{section.upper()}")
+
+        for item in items:
+            print(f"[{item['status']}] {item['element']}")
+
+    print("\nRESUMEN")
+    print(f"Revisiones: {total}")
+    print(f"Problemas: {problems}")
+
+    if problems == 0:
+        print("El sistema pasó todas las revisiones.")
+    else:
+        print("Hay elementos pendientes. Revisa los resultados.")
+
+    print(f"\nReporte guardado en: {report_path}")
+
+
+if __name__ == "__main__":
+    run_check()
