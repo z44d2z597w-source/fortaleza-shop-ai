@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "core/asset_library.py",
     "core/media_pipeline.py",
     "core/asset_report.py",
+    "core/asset_organizer.py",
     "core/publishing_manager.py",
     "core/analytics.py",
 ]
@@ -43,20 +44,20 @@ REQUIRED_PACKAGES = [
 def check_files():
     return [
         {
-            "element": file_name,
-            "status": "OK" if (ROOT / file_name).is_file() else "FALTA"
+            "element": name,
+            "status": "OK" if (ROOT / name).is_file() else "FALTA"
         }
-        for file_name in REQUIRED_FILES
+        for name in REQUIRED_FILES
     ]
 
 
 def check_folders():
     return [
         {
-            "element": folder_name,
-            "status": "OK" if (ROOT / folder_name).is_dir() else "FALTA"
+            "element": name,
+            "status": "OK" if (ROOT / name).is_dir() else "FALTA"
         }
-        for folder_name in REQUIRED_FOLDERS
+        for name in REQUIRED_FOLDERS
     ]
 
 
@@ -84,14 +85,14 @@ def run_check():
         "packages": check_packages(),
     }
 
-    all_checks = [
+    checks = [
         item
         for section in report.values()
         for item in section
     ]
 
-    total = len(all_checks)
-    problems = sum(item["status"] != "OK" for item in all_checks)
+    total = len(checks)
+    problems = sum(item["status"] != "OK" for item in checks)
 
     report["summary"] = {
         "total_checks": total,
@@ -108,7 +109,7 @@ def run_check():
         encoding="utf-8"
     )
 
-    print("\nFORTALEZA SHOP AI - REVISION DEL SISTEMA\n")
+    print("\nFORTALEZA SHOP AI - REVISION DEL SISTEMA")
 
     for section, items in report.items():
         if section == "summary":
@@ -123,7 +124,7 @@ def run_check():
     print(f"Revisiones: {total}")
     print(f"Problemas: {problems}")
     print("Estado:", "LISTO" if problems == 0 else "PENDIENTE")
-    print(f"\nReporte guardado en: {report_path}")
+    print(f"Reporte: {report_path}")
 
 
 if __name__ == "__main__":
