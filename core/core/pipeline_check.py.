@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "core/content_planner.py",
     "core/asset_library.py",
     "core/media_pipeline.py",
+    "core/asset_report.py",
     "core/publishing_manager.py",
     "core/analytics.py",
 ]
@@ -24,9 +25,11 @@ REQUIRED_FILES = [
 REQUIRED_FOLDERS = [
     "data",
     "data/product_assets",
+    "data/product_assets/tiktok_pestanas_bq",
     "output",
     "output/videos",
     "output/pipeline",
+    "output/assets",
     "output/ready_to_publish",
 ]
 
@@ -38,29 +41,23 @@ REQUIRED_PACKAGES = [
 
 
 def check_files():
-    results = []
-
-    for file_name in REQUIRED_FILES:
-        exists = (ROOT / file_name).is_file()
-        results.append({
+    return [
+        {
             "element": file_name,
-            "status": "OK" if exists else "FALTA"
-        })
-
-    return results
+            "status": "OK" if (ROOT / file_name).is_file() else "FALTA"
+        }
+        for file_name in REQUIRED_FILES
+    ]
 
 
 def check_folders():
-    results = []
-
-    for folder_name in REQUIRED_FOLDERS:
-        exists = (ROOT / folder_name).is_dir()
-        results.append({
+    return [
+        {
             "element": folder_name,
-            "status": "OK" if exists else "FALTA"
-        })
-
-    return results
+            "status": "OK" if (ROOT / folder_name).is_dir() else "FALTA"
+        }
+        for folder_name in REQUIRED_FOLDERS
+    ]
 
 
 def check_packages():
@@ -68,13 +65,13 @@ def check_packages():
 
     for package in REQUIRED_PACKAGES:
         try:
-            exists = importlib.util.find_spec(package) is not None
+            installed = importlib.util.find_spec(package) is not None
         except (ImportError, ModuleNotFoundError, ValueError):
-            exists = False
+            installed = False
 
         results.append({
             "element": package,
-            "status": "OK" if exists else "NO INSTALADO"
+            "status": "OK" if installed else "NO INSTALADO"
         })
 
     return results
@@ -87,13 +84,14 @@ def run_check():
         "packages": check_packages(),
     }
 
-    total = sum(len(items) for items in report.values())
-    problems = sum(
-        1
-        for items in report.values()
-        for item in items
-        if item["status"] not in ("OK",)
-    )
+    all_checks = [
+        item
+        for section in report.values()
+        for item in section
+    ]
+
+    total = len(all_checks)
+    problems = sum(item["status"] != "OK" for item in all_checks)
 
     report["summary"] = {
         "total_checks": total,
@@ -124,12 +122,7 @@ def run_check():
     print("\nRESUMEN")
     print(f"Revisiones: {total}")
     print(f"Problemas: {problems}")
-
-    if problems == 0:
-        print("El sistema pasó todas las revisiones.")
-    else:
-        print("Hay elementos pendientes. Revisa los resultados.")
-
+    print("Estado:", "LISTO" if problems == 0 else "PENDIENTE")
     print(f"\nReporte guardado en: {report_path}")
 
 
