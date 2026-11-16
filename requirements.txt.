@@ -1,36 +1,12 @@
 
-# ==========================================
-# FORTALEZA SHOP AI
-# Dependencias principales
-# ==========================================
-
-# Inteligencia artificial
-openai>=1.55.0
-
-# Variables de entorno
-python-dotenv>=1.0.1
-
-# Procesamiento de datos
-pandas>=2.2.3
-
-# Solicitudes HTTP y APIs
-requests>=2.32.3
-httpx>=0.27.2
-
-# Validación de datos
-pydantic>=2.9.2
-
-# Generación de videos
-moviepy>=2.1.1
-Pillow>=11.0.0
-imageio-ffmpeg>=0.5.1
-
-# Audio y narración
-edge-tts>=7.0.0
-
-# Fechas y programación
-APScheduler>=3.10.4
-
-# Configuración y utilidades
-PyYAML>=6.0.2
-tqdm>=4.67.1
+Pillow==11.0.0
+moviepy==2.1.2
+imageio-ffmpeg
+edge-tts
+python-dotenv
+requests
+httpx
+pydantic
+PyYAML
+tqdm
+APScheduler
