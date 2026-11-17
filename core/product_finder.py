@@ -232,10 +232,14 @@ def normalize_product(raw, source_name="manual"):
 
     # Solo se considera comprobado cuando la fuente
     # entrega el precio y existe un enlace válido.
+    # Solo una fuente autorizada puede marcar datos como verificados.
+    # Deben existir precio, comisión y ambos enlaces comerciales.
     verified = bool(
-        price != ""
+        source_name == "authorized_feed"
+        and price != ""
+        and commission != ""
         and product_url
-        and source_name != "manual"
+        and affiliate_url
     )
 
     status = (
