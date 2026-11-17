@@ -11,6 +11,7 @@ No utiliza APIs de pago ni inventa estadísticas.
 import csv
 import json
 import logging
+import math
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -105,8 +106,8 @@ def register_event(
     ):
         raise ValueError("El importe debe ser numérico.")
 
-    if amount_mxn < 0:
-        raise ValueError("El importe no puede ser negativo.")
+    if not math.isfinite(float(amount_mxn)) or amount_mxn < 0:
+        raise ValueError("El importe debe ser finito y no negativo.")
 
     event = {
         "product_id": str(product_id),
