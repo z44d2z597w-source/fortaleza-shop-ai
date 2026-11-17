@@ -152,16 +152,16 @@ def register_initial_product():
     y pueden cambiar en TikTok Shop.
     """
 
+    # No se reutilizan precios, comisiones ni existencias antiguas.
+    # El usuario debe actualizar los datos desde su panel de afiliados.
     return register_product(
         product_id="tiktok_pestanas_bq",
-        name="Kit de extensiones de pestañas B&Q 30D+40D",
-        affiliate_url=(
-            "https://vt.tiktok.com/ZS9f3kHks2txK-BbsOD/"
-        ),
-        price=125.00,
-        commission=16.80,
-        commission_rate=8,
-        stock=6213,
+        name="Producto TikTok Shop pendiente de verificación",
+        affiliate_url="https://vt.tiktok.com/ZS9f3kHks2txK-BbsOD/",
+        price=None,
+        commission=None,
+        commission_rate=None,
+        stock=None,
     )
 
 
