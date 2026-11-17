@@ -79,13 +79,10 @@ def save_product(product):
 
     destination = product_file(product_id)
 
-    with destination.open("w", encoding="utf-8") as file:
-        json.dump(
-            product,
-            file,
-            ensure_ascii=False,
-            indent=4,
-        )
+    temporary = destination.with_suffix(".tmp")
+    with temporary.open("w", encoding="utf-8") as file:
+        json.dump(product, file, ensure_ascii=False, indent=4)
+    temporary.replace(destination)
 
     product_asset_folder(product_id)
 
@@ -119,10 +116,23 @@ def register_product(
 ):
     """Registra un producto para futuras promociones."""
 
-    parsed = urlparse(affiliate_url)
-
-    if parsed.scheme != "https" or not parsed.netloc:
-        raise ValueError("El enlace debe utilizar HTTPS.")
+    if not str(name).strip():
+        raise ValueError("El nombre del producto es obligatorio.")
+    if not str(product_id).strip():
+        raise ValueError("El identificador del producto es obligatorio.")
+    parsed = urlparse(str(affiliate_url).strip())
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError("El enlace debe ser HTTPS y no contener credenciales.")
+    for label, value in (("precio", price), ("comisión", commission), ("porcentaje de comisión", commission_rate)):
+        if value is not None:
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                raise ValueError(f"El {label} debe ser numérico.")
+            if not __import__("math").isfinite(numeric) or numeric < 0:
+                raise ValueError(f"El {label} debe ser finito y no negativo.")
+    if commission_rate is not None and float(commission_rate) > 100:
+        raise ValueError("El porcentaje de comisión no puede superar 100.")
 
     product = {
         "id": safe_name(product_id),
