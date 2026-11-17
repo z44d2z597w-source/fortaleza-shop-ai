@@ -11,6 +11,12 @@ SUPPORTED_VIDEOS = {".mp4", ".mov", ".webm"}
 
 
 def build_asset_report(product_id):
+    product_id = "".join(
+        char for char in str(product_id)
+        if char.isalnum() or char in "-_"
+    )
+    if not product_id:
+        raise ValueError("Identificador de producto no válido.")
     product_folder = ASSET_DIR / product_id
     authorization_file = product_folder / "authorization.json"
 
