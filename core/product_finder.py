@@ -24,6 +24,7 @@ import logging
 import os
 import re
 import hashlib
+import math
 
 from datetime import datetime
 from pathlib import Path
@@ -154,7 +155,7 @@ def clean_number(value, minimum=0, maximum=None):
 
         number = float(value)
 
-        if number < minimum:
+        if not math.isfinite(number) or number < minimum:
             return ""
 
         if maximum is not None and number > maximum:
@@ -379,20 +380,17 @@ def save_products(products):
 
     try:
 
+        temporary = PRODUCTS_FILE.with_suffix(".tmp")
         with open(
-            PRODUCTS_FILE,
+            temporary,
             "w",
             newline="",
             encoding="utf-8-sig"
         ) as file:
-
-            writer = csv.DictWriter(
-                file,
-                fieldnames=PRODUCT_FIELDS
-            )
-
+            writer = csv.DictWriter(file, fieldnames=PRODUCT_FIELDS)
             writer.writeheader()
             writer.writerows(existing)
+        temporary.replace(PRODUCTS_FILE)
 
         logger.info(
             "Productos agregados: %s | Duplicados o inválidos: %s",
