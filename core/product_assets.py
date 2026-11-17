@@ -22,7 +22,7 @@ import config
 logger = logging.getLogger("FORTALEZA_SHOP_AI.product_assets")
 
 DATA_DIR = Path(config.DATA_DIR) / "products"
-ASSETS_DIR = Path(config.OUTPUT_DIR) / "product_assets"
+ASSETS_DIR = Path(config.DATA_DIR) / "product_assets"
 
 MAX_IMAGE_SIZE = 20 * 1024 * 1024
 MAX_VIDEO_SIZE = 100 * 1024 * 1024
@@ -280,7 +280,7 @@ def download_authorized_asset(
             "path": str(destination),
             "source": asset_url,
             "content_type": content_type,
-            "authorized_source_confirmed": True,
+            "authorized_source_confirmed": False,
         })
 
         save_product(product)
