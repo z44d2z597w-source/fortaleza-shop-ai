@@ -91,11 +91,10 @@ def _offline_script(product, duration):
         {"start": 18, "end": 25, "visual": "Enseñar el contenido o presentación real del producto.", "narration": "Compara la información y confirma que sea lo que necesitas.", "subtitle": "Revisa antes de comprar"},
         {"start": 25, "end": duration, "visual": "Cierre con el producto y una llamada a la acción.", "narration": "Consulta el precio y la disponibilidad actualizados en el enlace.", "subtitle": "Consulta el enlace"},
     ]
-    # Ajusta el cierre para duraciones mínimas y evita escenas con duración cero.
-    if duration < 25:
-        points = [0, round(duration*.16), round(duration*.38), round(duration*.68), round(duration*.84), duration]
-        for i, scene in enumerate(scenes):
-            scene["start"], scene["end"] = points[i], points[i+1]
+    # Divide cualquier duración válida en cinco escenas positivas y continuas.
+    points = [round(duration * index / 5) for index in range(6)]
+    for index, scene in enumerate(scenes):
+        scene["start"], scene["end"] = points[index], points[index + 1]
     full = " ".join(scene["narration"] for scene in scenes)
     return {
         "title": f"{name} | Conócelo antes de comprar",
