@@ -23,5 +23,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Revisar estructura del proyecto
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Revisar estructura
         run: python core/pipeline_check.py
+
+      - name: Probar módulos
+        run: python core/system_test.py
