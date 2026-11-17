@@ -36,11 +36,15 @@ def prepare_draft(product_id, video_path, caption, affiliate_url, disclosure=Tru
         raise ValueError("Se requiere un enlace HTTPS de afiliado.")
     if not str(caption).strip():
         raise ValueError("La descripción no puede estar vacía.")
+    caption_text = str(caption).strip()
+    disclosure_text = "Este contenido incluye un enlace de afiliado. Si compras mediante él, podemos recibir una comisión."
+    if disclosure and "enlace de afiliado" not in caption_text.lower():
+        caption_text = f"{caption_text}\n\n{disclosure_text}"
     item = {
         "draft_id": f"{product_id}-{datetime.now(config.TIMEZONE).strftime('%Y%m%d%H%M%S')}",
         "product_id": str(product_id),
         "video_path": str(video.resolve()),
-        "caption": str(caption).strip(),
+        "caption": caption_text,
         "affiliate_url": str(affiliate_url).strip(),
         "affiliate_disclosure_required": bool(disclosure),
         "status": "PENDING_REVIEW",
