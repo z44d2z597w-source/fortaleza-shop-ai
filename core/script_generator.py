@@ -105,7 +105,11 @@ def _offline_script(product, duration):
         "scenes": scenes,
         "full_narration": full,
         "call_to_action": "Consulta el precio y los detalles en el enlace.",
-        "caption": f"Conoce {name}. Revisa la ficha del vendedor para confirmar características, precio y disponibilidad.",
+        "caption": (
+            f"Conoce {name}. Revisa la ficha del vendedor para confirmar "
+            "características, precio y disponibilidad. "
+            "Este contenido incluye un enlace de afiliado; si compras mediante él, podemos recibir una comisión."
+        ),
         "hashtags": ["#FortalezaShopAI", "#TikTokShop", "#EncuentraLoQueBuscas"],
         "generation_mode": "FREE_TEMPLATE",
         "requires_human_review": True,
