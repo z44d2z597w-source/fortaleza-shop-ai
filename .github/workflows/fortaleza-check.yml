@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: fortaleza-ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   revisar:
     runs-on: ubuntu-latest
