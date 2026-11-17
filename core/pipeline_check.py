@@ -5,6 +5,8 @@ import json
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 REQUIRED_FILES = [
     "config.py", "main.py", "requirements.txt",
     "core/product_finder.py", "core/product_scorer.py",
