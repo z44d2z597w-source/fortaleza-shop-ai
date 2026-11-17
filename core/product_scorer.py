@@ -20,6 +20,7 @@ No inventa ventas, popularidad ni conversiones.
 import csv
 import json
 import logging
+import math
 
 from pathlib import Path
 from datetime import datetime
@@ -66,7 +67,7 @@ def number(value):
     try:
         result = float(value)
 
-        if result < 0:
+        if not math.isfinite(result) or result < 0:
             return None
 
         return result
