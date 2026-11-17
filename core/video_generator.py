@@ -171,13 +171,17 @@ def create_video(
 
     audio = AudioFileClip(str(audio_file))
 
-    if audio.duration <= 0:
+    if not config.MIN_VIDEO_DURATION <= audio.duration <= config.MAX_VIDEO_DURATION:
         audio.close()
-        raise ValueError("El audio no tiene duración válida.")
+        raise ValueError(
+            f"La duración del audio debe estar entre "
+            f"{config.MIN_VIDEO_DURATION} y {config.MAX_VIDEO_DURATION} segundos."
+        )
 
     scene_duration = audio.duration / len(scenes)
 
     clips = []
+    video = None
 
     try:
         for index, scene in enumerate(scenes):
@@ -321,6 +325,7 @@ def create_video(
         )
 
         video.close()
+        video = None
 
         logger.info("Video creado: %s", output_path)
 
@@ -334,6 +339,8 @@ def create_video(
         }
 
     finally:
+        if video is not None:
+            video.close()
         audio.close()
 
         for clip in clips:
