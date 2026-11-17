@@ -1,287 +1,107 @@
+# FORTALEZA SHOP AI
 
-# FORTALEZA SHOP AI 🚀
+Sistema modular para investigar productos de afiliados, evaluar información comercial y preparar videos verticales en español para México.
 
-### Sistema inteligente de automatización comercial y marketing de afiliados
+## Principios del proyecto
 
----
+- **Inversión inicial objetivo: $0 MXN.** El flujo predeterminado utiliza plantillas locales, Python y herramientas gratuitas.
+- Sin scraping de tiendas ni evasión de restricciones.
+- No inventa precios, comisiones, reseñas, ventas ni características.
+- No publica automáticamente. Todo contenido requiere revisión humana.
+- Solo usa imágenes y videos cuya autorización esté documentada.
+- Las funciones que puedan generar cargos permanecen desactivadas por defecto.
 
-## 1. DESCRIPCIÓN
-
-FORTALEZA SHOP AI es un proyecto independiente diseñado para automatizar la creación de contenido comercial para productos de afiliados.
-
-Su objetivo es descubrir oportunidades comerciales, seleccionar productos, generar guiones, producir videos verticales, gestionar enlaces de afiliados y analizar resultados.
-
-Mercado inicial: México.
-
-Idioma: Español.
-
-Formato: Videos verticales 9:16.
-
-Duración objetivo: 15 a 45 segundos.
-
----
-
-## 2. CATEGORÍAS
-
-El sistema trabajará con cuatro categorías:
-
-1. Productos virales.
-2. Hogar y cocina.
-3. Tecnología y gadgets.
-4. Descubrimientos y ofertas.
-
----
-
-## 3. ARQUITECTURA
-
-El sistema estará dividido en módulos independientes.
+## Qué funciona actualmente
 
 | Módulo | Función |
 |---|---|
-| PRODUCT FINDER | Encontrar productos |
-| PRODUCT SCORER | Evaluar oportunidades |
-| AI SCRIPT | Crear guiones |
-| VIDEO MAKER | Producir videos |
-| VOICE ENGINE | Generar narraciones |
-| PUBLISHER | Publicar contenido |
-| ANALYTICS | Medir resultados |
+| Product Finder | Importa productos desde JSON o feeds HTTPS que tengas permiso de consultar |
+| Product Scorer | Puntúa la calidad de la oportunidad según los datos disponibles |
+| Script Generator | Genera guiones en modo gratuito con plantillas; IA externa es opcional y puede tener costo |
+| Asset Library | Inventaría imágenes y videos locales y comprueba la autorización declarada |
+| Media Pipeline | Prepara un guion y lo relaciona con recursos autorizados |
+| Voice Generator | Genera voz en español con Edge TTS; requiere internet |
+| Video Generator | Produce MP4 vertical con imágenes y narración disponibles |
+| Analytics | Registra e informa datos ingresados manualmente o exportados oficialmente |
+| Publishing Manager | Organiza borradores y aprobaciones; no publica automáticamente |
 
----
+## Instalación
 
-## 4. TECNOLOGÍAS
-
-- Python
-- GitHub
-- GitHub Actions
-- OpenAI API
-- FFmpeg
-- MoviePy
-- Edge-TTS
-- TikTok Content Posting API
-- JSON y CSV
-
----
-
-## 5. MODOS DE OPERACIÓN
-
-### TEST
-
-Genera contenido y realiza pruebas sin publicar.
-
-### REVIEW
-
-Prepara videos para revisión y aprobación manual.
-
-### AUTO
-
-Publica mediante integraciones oficiales autorizadas.
-
-La publicación automática permanecerá desactivada hasta completar las autorizaciones necesarias.
-
----
-
-## 6. ESTRUCTURA DEL PROYECTO
-
-```text
-fortaleza-shop-ai/
-│
-├── main.py
-├── config.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-│
-├── core/
-│   ├── product_finder.py
-│   ├── product_scorer.py
-│   ├── script_generator.py
-│   ├── video_generator.py
-│   ├── voice_generator.py
-│   ├── publisher.py
-│   └── analytics.py
-│
-├── data/
-│   ├── products.csv
-│   ├── published.json
-│   └── analytics.json
-│
-├── templates/
-│   └── commercial_prompt.txt
-│
-├── output/
-│
-├── logs/
-│
-└── .github/
-    └── workflows/
-        └── daily.yml
-```
-
----
-
-## 7. INSTALACIÓN
-
-Clonar el repositorio:
+Requiere Python 3.11 o superior.
 
 ```bash
-git clone https://github.com/TU_USUARIO/fortaleza-shop-ai.git
-
+git clone https://github.com/z44d2z597w-source/fortaleza-shop-ai.git
 cd fortaleza-shop-ai
+python -m venv .venv
 ```
 
-Crear entorno virtual:
+Activar entorno:
+
+- Windows: `.venv\\Scripts\\activate`
+- macOS/Linux: `source .venv/bin/activate`
+
+Instalar:
 
 ```bash
-python -m venv venv
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Activar en Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-Activar en Linux o macOS:
-
-```bash
-source venv/bin/activate
-```
-
-Instalar dependencias:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## 8. EJECUCIÓN
-
-Verificar el proyecto:
+## Comandos
 
 ```bash
 python main.py --check
-```
-
-Consultar estado:
-
-```bash
 python main.py --status
-```
-
-Consultar información:
-
-```bash
-python main.py --info
-```
-
-Abrir menú:
-
-```bash
+python main.py --find-products
+python main.py --score-products
+python main.py --generate-scripts
+python main.py --analytics
 python main.py --menu
 ```
 
----
+## Catálogo de productos
 
-## 9. VARIABLES DE ENTORNO
+Importa un archivo JSON con una lista de productos o un objeto con la propiedad `products`. Campos aceptados:
 
-Las credenciales se configurarán mediante variables de entorno o secretos de GitHub.
+- `name`, `category`, `store`, `seller`
+- `price_mxn`, `commission_percent`
+- `product_url`, `affiliate_url`, `source_id`
 
-| Variable | Función |
-|---|---|
-| OPENAI_API_KEY | Inteligencia artificial |
-| OPENAI_MODEL | Modelo de IA |
-| PUBLISH_MODE | Modo de operación |
-| TIKTOK_CLIENT_KEY | Aplicación TikTok |
-| TIKTOK_CLIENT_SECRET | Seguridad |
-| TIKTOK_ACCESS_TOKEN | Autorización |
-| TIKTOK_OPEN_ID | Identificador |
-| VIDEO_STORAGE_URL | Almacenamiento externo |
+Categorías: `productos_virales`, `hogar`, `tecnologia`, `descubrimientos`.
 
-Nunca guardar credenciales directamente en el código.
+Para consultar feeds autorizados configura `PRODUCT_FEED_URLS` con URLs HTTPS separadas por punto y coma. No se consulta ninguna tienda automáticamente si no configuras una fuente.
 
----
+## Imágenes y videos
 
-## 10. AUTOMATIZACIÓN
+Los recursos se organizan en `data/product_assets/<product_id>/`. El archivo `authorization.json` debe documentar el permiso del vendedor o de la plataforma con:
 
-Horario objetivo:
+```json
+{
+  "authorized_for_promotion": true,
+  "source": "Nombre de la fuente que otorgó el permiso",
+  "permission_reference": "Referencia verificable del permiso"
+}
+```
 
-| Hora México | Actividad |
-|---|---|
-| 07:00 | Buscar productos |
-| 07:15 | Evaluar oportunidades |
-| 07:30 | Crear guiones |
-| 07:45 | Generar videos |
-| 08:15 | Preparar publicaciones |
-| 21:00 | Registrar estadísticas |
+La declaración no sustituye la verificación de derechos. Sin autorización declarada, los recursos no se consideran utilizables.
 
-Los horarios son configurables y dependen de que las integraciones estén disponibles.
+## Costos y funciones opcionales
 
----
+El modo gratuito no necesita clave de OpenAI. La generación por API externa solo puede activarse con `ENABLE_PAID_AI=true` y `OPENAI_API_KEY`; **la API puede generar cargos**. No actives esa opción si quieres mantener el gasto en cero.
 
-## 11. REGLAS DE SEGURIDAD
+Edge TTS requiere conexión a internet y está sujeto a disponibilidad y condiciones del servicio.
 
-- No inventar precios.
-- No inventar comisiones.
-- No utilizar enlaces falsos.
-- No repetir publicaciones.
-- No publicar videos defectuosos.
-- No utilizar contenido protegido sin autorización.
-- Conservar historial de operaciones.
-- Proteger las credenciales.
-- Respetar las políticas de las plataformas.
-- Detener operaciones ante errores críticos.
+TikTok y otras plataformas no se publican automáticamente. La integración oficial y sus autorizaciones aún deben implementarse y probarse. El gestor actual solo prepara borradores para revisión manual.
 
----
+## Seguridad
 
-## 12. AFILIADOS
+- No guardes claves ni tokens en archivos del repositorio.
+- Usa variables de entorno o secretos de GitHub.
+- No compartas archivos de autorización que contengan información privada.
+- Revisa precios, disponibilidad, enlaces y afirmaciones antes de publicar.
+- No publiques material sin permiso.
+- La rama `main` se verifica con GitHub Actions en cada push y pull request.
 
-El catálogo registrará:
+## Estado
 
-- Nombre del producto.
-- Categoría.
-- Tienda.
-- Vendedor.
-- Precio verificado.
-- Comisión.
-- Enlace afiliado.
-- Fecha de revisión.
-- Videos relacionados.
-- Conversiones.
-- Ganancias.
-
-Los enlaces y las comisiones deberán proceder de fuentes oficiales de afiliación.
-
----
-
-## 13. OBJETIVO FINAL
-
-Construir una operación comercial automatizada capaz de:
-
-1. Encontrar productos atractivos.
-2. Seleccionar oportunidades rentables.
-3. Generar videos originales.
-4. Gestionar enlaces de afiliados.
-5. Publicar contenido autorizado.
-6. Medir resultados.
-7. Optimizar futuras publicaciones.
-
----
-
-## ESTADO DEL PROYECTO
-
-**Nombre:** FORTALEZA SHOP AI
-
-**Versión:** 1.0.0
-
-**Mercado:** México
-
-**Modo inicial:** TEST
-
-**Publicación automática:** Desactivada
-
-**Estado:** En construcción.
-
----
-
-Proyecto independiente de FORTALEZA MEDIA AI.
+Versión de desarrollo. El proyecto continúa en construcción; que los tests pasen no significa que todas las integraciones externas estén conectadas ni que las publicaciones estén automatizadas.
